@@ -1,6 +1,6 @@
-#Comparando modelos predictivos
+1|  |||||S1#Comparando modelos predictivos
 #se muestran tres conjuntos de hiperparametros buenos A,B y C  y se pide ordenarlos del mejor al peor
-#testing  esta dividido en Public y Private
+#se deben utilizar sus propias semillas
 
 rm( list=ls() )  #Borro todos los objetos
 gc()   #Garbage Collection
@@ -9,7 +9,7 @@ require("data.table")
 require("rpart")
 require("parallel")
 
-ksemillas  <- c( 102191, 200177, 410551, 552581, 892237 ) #reemplazar por las propias semillas
+ksemillas  <- c( 388699, 617153, 147263, 854417, 242807 ) #reemplazar por las propias semillas
 
 #------------------------------------------------------------------------------
 #particionar agrega una columna llamada fold a un dataset que consiste en una particion estratificada segun agrupa
@@ -29,9 +29,7 @@ particionar  <- function( data,  division, agrupa="",  campo="fold", start=1, se
 ArbolEstimarGanancia  <- function( semilla, param_basicos )
 {
   #particiono estratificadamente el dataset
-  #en la primer mitad, entreno
-  #en la segunda mitad, al 30% lo llamo Public,  al 70 Private
-  particionar( dataset, division=c(10, 3, 7), agrupa="clase_ternaria", seed= semilla )  #Cambiar por la primer semilla de cada uno !
+  particionar( dataset, division=c(7,3), agrupa="clase_ternaria", seed= semilla )  #Cambiar por la primer semilla de cada uno !
 
   #genero el modelo
   modelo  <- rpart("clase_ternaria ~ .",     #quiero predecir clase_ternaria a partir del resto
@@ -40,37 +38,24 @@ ArbolEstimarGanancia  <- function( semilla, param_basicos )
                    control= param_basicos )  #aqui van los parametros del arbol
 
   #aplico el modelo a los datos de testing
-  pred_Public   <- predict( modelo,   #el modelo que genere recien
-                            dataset[ fold==2],  #fold==2  es Public
-                            type= "prob") #type= "prob"  es que devuelva la probabilidad
-
-  pred_Private  <- predict( modelo,   #el modelo que genere recien
-                            dataset[ fold==3],  #fold==3  es Private
-                            type= "prob") #type= "prob"  es que devuelva la probabilidad
+  prediccion  <- predict( modelo,   #el modelo que genere recien
+                          dataset[ fold==2],  #fold==2  es testing, el 30% de los datos
+                          type= "prob") #type= "prob"  es que devuelva la probabilidad
 
   #prediccion es una matriz con TRES columnas, llamadas "BAJA+1", "BAJA+2"  y "CONTINUA"
   #cada columna es el vector de probabilidades 
 
 
-  #calculo la ganancia en Public  que es fold==2
-  ganancia_Public   <- dataset[ fold==2, 
-                                sum( ifelse( pred_Public[, "BAJA+2"]  >  0.025,
-                                             ifelse( clase_ternaria=="BAJA+2", 78000, -2000 ),
-                                             0 ) )]
-
-  #calculo la ganancia en Private  que es fold==3
-  ganancia_Private  <- dataset[ fold==3, 
-                                sum( ifelse( pred_Private[, "BAJA+2"]  >  0.025,
-                                             ifelse( clase_ternaria=="BAJA+2", 78000, -2000 ),
-                                             0 ) )]
-
+  #calculo la ganancia en testing  qu es fold==2
+  ganancia_test  <- dataset[ fold==2, 
+                             sum( ifelse( prediccion[, "BAJA+2"]  >  0.025,
+                                         ifelse( clase_ternaria=="BAJA+2", 78000, -2000 ),
+                                         0 ) )]
 
   #escalo la ganancia como si fuera todo el dataset
-  ganancia_Public_normalizada   <- ganancia_Public  / ( 0.5 * 0.3 )
-  ganancia_Private_normalizada  <- ganancia_Private / ( 0.5 * 0.7 )
+  ganancia_test_normalizada  <-  ganancia_test / 0.3
 
-  return( list( "public"=  ganancia_Public_normalizada,
-                "private"= ganancia_Private_normalizada  ) )
+  return( ganancia_test_normalizada )
 }
 #------------------------------------------------------------------------------
 
@@ -83,13 +68,13 @@ ArbolesMontecarlo  <- function( semillas,  param_basicos )
                           mc.cores= 1 )  #se puede subir a 5 si posee Linux o Mac OS
 
   #el vector de las ganancias
-  return(  rbindlist( ganancias)  )
+  return(  unlist(ganancias) )
 }
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
 #Aqui se debe poner la carpeta de la computadora local
-setwd("D:\\gdrive\\UBA2022\\")   #Establezco el Working Directory
+setwd("C:\\Users\\renso\\OneDrive\\Documentos\\DMEF")   #Establezco el Working Directory
 #cargo los datos
 
 #cargo los datos
@@ -120,13 +105,7 @@ ganA  <- ArbolesMontecarlo( ksemillas, paramA )
 ganB  <- ArbolesMontecarlo( ksemillas, paramB )
 ganC  <- ArbolesMontecarlo( ksemillas, paramC )
 
-ganA
-ganB
-ganC
-
 #imprimo la media de las ganancias
-cat( ganA[ , mean(public) ], ganB[ , mean(public) ], ganC[ , mean(public) ] , "\n")
-
-cat( ganA[ , mean(private) ], ganB[ , mean(private) ], ganC[ , mean(private) ] , "\n")
+cat( mean(ganA), mean(ganB), mean(ganC), "\n" )
 
 

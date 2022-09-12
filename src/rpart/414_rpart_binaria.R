@@ -1,17 +1,42 @@
 #Aplicacion de los mejores hiperparametros encontrados en una bayesiana
 #Utilizando clase_binaria =  [  SI = { "BAJA+1", "BAJA+2"} ,  NO="CONTINUA ]
 
+#limpio la memoria
+rm( list=ls() )  #remove all objects
+gc()             #garbage collection
+
 #cargo las librerias que necesito
 require("data.table")
 require("rpart")
 require("rpart.plot")
+require("Hmisc")
 
 
 #Aqui se debe poner la carpeta de la materia de SU computadora local
-setwd("D:\\gdrive\\UBA2022\\")  #Establezco el Working Directory
+setwd("C:\\Users\\renso\\OneDrive\\Documentos\\DMEF")  #Establezco el Working Directory
 
 #cargo el dataset
 dataset  <- fread("./datasets/competencia1_2022.csv" )
+
+
+dataset[ , campo1 := as.integer( ctrx_quarter <14 & mcuentas_saldo < -1256.1 & cprestamos_personales <2 ) ]
+dataset[ , campo2 := as.integer( ctrx_quarter <14 & mcuentas_saldo < -1256.1 & cprestamos_personales>=2 ) ]
+
+dataset[ , campo3 := as.integer( ctrx_quarter <14 & mcuentas_saldo>= -1256.1 & mcaja_ahorro <2601.1 ) ]
+dataset[ , campo4 := as.integer( ctrx_quarter <14 & mcuentas_saldo>= -1256.1 & mcaja_ahorro>=2601.1 ) ]
+
+dataset[ , campo5 := as.integer( ctrx_quarter>=14 & ctrx_quarter<30  & mcaja_ahorro<2604.3  ) ]
+dataset[ , campo6 := as.integer( ctrx_quarter>=14 & ctrx_quarter<30  & mcaja_ahorro>=2604.3  ) ]
+
+dataset[ , campo7 := as.integer( ctrx_quarter>=14 & ctrx_quarter>=30  & ctrx_quarter<49  ) ]
+dataset[ , campo8 := as.integer( ctrx_quarter>=14 & ctrx_quarter>=30  & ctrx_quarter>=49  ) ]
+
+dataset[ , campo9 := mcuentas_saldo / mcaja_ahorro  ]
+dataset[ , campo10 := ctrx_quarter / cdescubierto_preacordado  ]
+dataset[ , campo11 := mpasivos_margen / mcaja_ahorro ]
+dataset[ , campo12 := mcaja_ahorro / cliente_antiguedad ]
+dataset[ , campo13 := cdescubierto_preacordado / cliente_antiguedad ]
+
 
 
 #creo la clase_binaria SI={ BAJA+1, BAJA+2 }    NO={ CONTINUA }
@@ -41,22 +66,22 @@ modelo  <- rpart(formula=   "clase_binaria ~ . -clase_ternaria",
 #----------------------------------------------------------------------------
 
 # corrijo manualmente el drifting de  Visa_fultimo_cierre
-# dapply[ Visa_fultimo_cierre== 1, Visa_fultimo_cierre :=  4 ]
-# dapply[ Visa_fultimo_cierre== 7, Visa_fultimo_cierre := 11 ]
-# dapply[ Visa_fultimo_cierre==21, Visa_fultimo_cierre := 25 ]
-# dapply[ Visa_fultimo_cierre==14, Visa_fultimo_cierre := 18 ]
-# dapply[ Visa_fultimo_cierre==28, Visa_fultimo_cierre := 32 ]
-# dapply[ Visa_fultimo_cierre==35, Visa_fultimo_cierre := 39 ]
-# dapply[ Visa_fultimo_cierre> 39, Visa_fultimo_cierre := Visa_fultimo_cierre + 4 ]
+dapply[ Visa_fultimo_cierre== 1, Visa_fultimo_cierre :=  4 ]
+dapply[ Visa_fultimo_cierre== 7, Visa_fultimo_cierre := 11 ]
+dapply[ Visa_fultimo_cierre==21, Visa_fultimo_cierre := 25 ]
+dapply[ Visa_fultimo_cierre==14, Visa_fultimo_cierre := 18 ]
+dapply[ Visa_fultimo_cierre==28, Visa_fultimo_cierre := 32 ]
+dapply[ Visa_fultimo_cierre==35, Visa_fultimo_cierre := 39 ]
+dapply[ Visa_fultimo_cierre> 39, Visa_fultimo_cierre := Visa_fultimo_cierre + 4 ]
 
 # corrijo manualmente el drifting de  Visa_fultimo_cierre
-# dapply[ Master_fultimo_cierre== 1, Master_fultimo_cierre :=  4 ]
-# dapply[ Master_fultimo_cierre== 7, Master_fultimo_cierre := 11 ]
-# dapply[ Master_fultimo_cierre==21, Master_fultimo_cierre := 25 ]
-# dapply[ Master_fultimo_cierre==14, Master_fultimo_cierre := 18 ]
-# dapply[ Master_fultimo_cierre==28, Master_fultimo_cierre := 32 ]
-# dapply[ Master_fultimo_cierre==35, Master_fultimo_cierre := 39 ]
-# dapply[ Master_fultimo_cierre> 39, Master_fultimo_cierre := Master_fultimo_cierre + 4 ]
+dapply[ Master_fultimo_cierre== 1, Master_fultimo_cierre :=  4 ]
+dapply[ Master_fultimo_cierre== 7, Master_fultimo_cierre := 11 ]
+dapply[ Master_fultimo_cierre==21, Master_fultimo_cierre := 25 ]
+dapply[ Master_fultimo_cierre==14, Master_fultimo_cierre := 18 ]
+dapply[ Master_fultimo_cierre==28, Master_fultimo_cierre := 32 ]
+dapply[ Master_fultimo_cierre==35, Master_fultimo_cierre := 39 ]
+dapply[ Master_fultimo_cierre> 39, Master_fultimo_cierre := Master_fultimo_cierre + 4 ]
 
 
 #aplico el modelo a los datos nuevos
@@ -74,7 +99,7 @@ dfinal[ , prob_SI := prediccion[ , "SI"] ]
 
 # por favor cambiar por una semilla propia
 # que sino el Fiscal General va a impugnar la prediccion
-set.seed(102191)  
+set.seed(388699)  
 dfinal[ , azar := runif( nrow(dapply) ) ]
 
 # ordeno en forma descentente, y cuando coincide la probabilidad, al azar
@@ -82,7 +107,7 @@ setorder( dfinal, -prob_SI, azar )
 
 
 dir.create( "./exp/" )
-dir.create( "./exp/KA4120" )
+dir.create( "./exp/KA417" )
 
 
 for( corte  in  c( 7500, 8000, 8500, 9000, 9500, 10000, 10500, 11000 ) )
@@ -93,6 +118,9 @@ for( corte  in  c( 7500, 8000, 8500, 9000, 9500, 10000, 10500, 11000 ) )
 
 
   fwrite( dfinal[ , list(numero_de_cliente, Predicted) ], #solo los campos para Kaggle
-           file= paste0( "./exp/KA4120/KA4120_005_",  corte, ".csv"),
+           file= paste0( "./exp/KA417/KA417_005_",  corte, ".csv"),
            sep=  "," )
 }
+
+vector_importantes <- names( modelo$variable.importance )
+vector_importantes
