@@ -29,7 +29,7 @@ PARAM$finalmodel$learning_rate     <-      0.0705819198199067   #0.0142501265
 PARAM$finalmodel$num_iterations    <-    321  #615
 PARAM$finalmodel$num_leaves        <-   141  #784
 PARAM$finalmodel$min_data_in_leaf  <-   6599  #5628
-PARAM$finalmodel$feature_fraction  <-      0.742919374656293  #0.8382482539
+PARAM$finalmodel$feature_fraction  <-      0.7429193746562937243  #0.8382482539
 PARAM$finalmodel$semilla           <- 388699
 
 #------------------------------------------------------------------------------
