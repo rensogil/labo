@@ -17,13 +17,13 @@ require("lightgbm")
 #defino los parametros de la corrida, en una lista, la variable global  PARAM
 #  muy pronto esto se leera desde un archivo formato .yaml
 PARAM <- list()
-PARAM$experimento  <- "KA7243"
+PARAM$experimento  <- "KA7244"
 
 PARAM$input$dataset       <- "./datasets/competencia2_2022.csv.gz"
 PARAM$input$training      <- c( 202103 )
 PARAM$input$future        <- c( 202105 )
 
-# Utilizo el segundo valor de ganancia de HT7240 iteracion 29
+# Utilizo el segundo valor de ganancia de HT7240 iteracion 53
 PARAM$finalmodel$max_bin           <-     31
 PARAM$finalmodel$learning_rate     <-      0.0750430898085195   #0.0142501265
 PARAM$finalmodel$num_iterations    <-    269  #615
