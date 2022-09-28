@@ -207,6 +207,25 @@ dataset[ , campo6 := as.integer( ctrx_quarter>=14 & ctrx_quarter<30  & mcaja_aho
 dataset[ , campo7 := as.integer( ctrx_quarter>=14 & ctrx_quarter>=30  & ctrx_quarter<49  ) ]
 dataset[ , campo8 := as.integer( ctrx_quarter>=14 & ctrx_quarter>=30  & ctrx_quarter>=49  ) ]
 
+
+mis_variables <- c("ctrx_quarter","mcaja_ahorro", "mpayroll","mcuentas_saldo", "mpasivos_margen",
+                   "mtarjeta_visa_consumo", "mprestamos_personales","mrentabilidad_annual",
+                   "Visa_msaldototal", "mcuenta_corriente", "mactivos_margen", "mcomisiones_mantenimiento",
+                   "mrentabilidad", "cdescubierto_preacordado", "mcomisiones_otras", "cliente_edad",
+                   "Visa_mpagominimo", "Master_fechaalta", "Master_Fvencimiento", "Visa_fechaalta",
+                   "ctarjeta_visa", "Master_status", "Visa_msaldopesos", "Visa_Fvencimiento",
+                   "cprestamos_personales", "cproductos", "chomebanking_transacciones", "ctarjeta_visa_transacciones",
+                   "Visa_mconsumospesos", "mcomisiones"
+)
+
+# A todas las vamos a rankear
+
+prefix <- "r_"
+for (var in mis_variables) {
+  dataset[, (paste(prefix, var, sep = "")) := ntile(get(var), 20)]
+
+}
+
 #creo la carpeta donde va el experimento
 # HT  representa  Hiperparameter Tuning
 dir.create( "./exp/",  showWarnings = FALSE ) 
