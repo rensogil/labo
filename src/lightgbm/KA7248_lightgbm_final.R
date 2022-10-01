@@ -69,6 +69,22 @@ mis_variables <- c("ctrx_quarter","mcaja_ahorro", "mpayroll","mcuentas_saldo", "
                    "Visa_mconsumospesos", "mcomisiones"
 )
 
+
+variables_rank <- c("mcuentas_saldo","cdescubierto_preacordado", "cprestamos_personales", 
+                    "mprestamos_personales", "mcuenta_corriente", "mpasivos_margen", "mcaja_ahorro", 
+                    "mactivos_margen", "mcomisiones_mantenimiento", "mcomisiones", "mpayroll", "cpayroll_trx", "Visa_Fvencimiento",
+                    "Master_Fvencimiento","Master_Finiciomora","Master_fultimo_cierre","Visa_fultimo_cierre","Visa_Finiciomora",
+                    "mttarjeta_master_debitos_automaticos", "mtarjeta_visa_consumo", "Visa_msaldopesos",
+                    "Visa_msaldototal", "Visa_mpagado", "Visa_mpagominimo", "Visa_mlimitecompra", "Visa_mfinanciacion_limite",
+                    "mttarjeta_visa_debitos_automaticos", "mrentabilidad_annual", "mrentabilidad", "mcomisiones_otras",
+                    "Master_mpagado","mtransferencias_recibidas", "matm_other", "atm", "mcheques_depositados", "ctransferencias_recibidas",
+                    "Master_mpagosdolares", "Visa_mpagospesos", "Visa_msaldodolares", "mtransferencias_emitidas",
+                    "Master_mconsumosdolares", "Master_msaldodolares", "mcaja_ahorro_dolares", "ccheques_depositados",
+                    "mpagomiscuentas", "mtarjeta_visa_descuentos", "mplazo_fijo_dolares","mcajeros_propios_descuentos", "Master_msaldototal",
+                    "mtarjeta_master_consumo", "mcuenta_debitos_automaticos", "cpagomiscuentas", "Master_msaldopesos", "Master_mconsumototal",
+                    "Master_mpagominimo", "Visa_mconsumosdolares", "Visa_mpagosdolares", "Visa_mconsumototal"
+)
+
 # A todas las vamos a rankear
 
 prefix <- "r_"
