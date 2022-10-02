@@ -58,7 +58,7 @@ PARAM$hyperparametertuning$POS_ganancia  <- 78000
 PARAM$hyperparametertuning$NEG_ganancia  <- -2000
 
 PARAM$hyperparametertuning$semilla_azar  <- 388699  #Aqui poner la propia semilla, PUEDE ser distinta a la de trainingstrategy
-
+ksemillas<- c(388699, 617153, 147263, 854417, 242807,306529, 472993, 669989, 775163, 996689)
 #------------------------------------------------------------------------------
 #graba a un archivo los componentes de lista
 #para el primer registro, escribe antes los titulos
@@ -110,82 +110,104 @@ fganancia_logistic_lightgbm  <- function( probs, datos)
 EstimarGanancia_lightgbm  <- function( x )
 {
   gc()  #libero memoria
-
+  
   #llevo el registro de la iteracion por la que voy
   GLOBAL_iteracion  <<- GLOBAL_iteracion + 1
-
-  #para usar en fganancia_logistic_lightgbm 
-  GLOBAL_envios <<- as.integer(x$envios/PARAM$hyperparametertuning$xval_folds)   #asigno la variable global
-
-  kfolds  <- PARAM$hyperparametertuning$xval_folds   # cantidad de folds para cross validation
-
-  param_basicos  <- list( objective= "binary",
-                          metric= "custom",
-                          first_metric_only= TRUE,
-                          boost_from_average= TRUE,
-                          feature_pre_filter= FALSE,
-                          verbosity= -100,
-                          max_depth=  -1,         # -1 significa no limitar,  por ahora lo dejo fijo
-                          min_gain_to_split= 0.0, #por ahora, lo dejo fijo
-                          lambda_l1= 0.0,         #por ahora, lo dejo fijo
-                          lambda_l2= 0.0,         #por ahora, lo dejo fijo
-                          max_bin= 31,            #por ahora, lo dejo fijo
-                          num_iterations= 9999,   #un numero muy grande, lo limita early_stopping_rounds
-                          force_row_wise= TRUE,   #para que los alumnos no se atemoricen con tantos warning
-                          seed= PARAM$hyperparametertuning$semilla_azar
-  )
   
-
-  #el parametro discolo, que depende de otro
-  param_variable  <- list(  early_stopping_rounds= as.integer(50 + 5/x$learning_rate) )
-
-  param_completo  <- c( param_basicos, param_variable, x )
-
-  set.seed( PARAM$hyperparametertuning$semilla_azar )
-  modelocv  <- lgb.cv( data= dtrain,
-                       eval= fganancia_logistic_lightgbm,
-                       stratified= TRUE, #sobre el cross validation
-                       nfold= kfolds,    #folds del cross validation
-                       param= param_completo,
-                       verbose= -100
-                      )
-
-  #obtengo la ganancia
-  ganancia  <- unlist(modelocv$record_evals$valid$ganancia$eval)[ modelocv$best_iter ]
-
-  ganancia_normalizada  <-  ganancia* kfolds     #normailizo la ganancia
-
-  param_completo$num_iterations <- modelocv$best_iter  #asigno el mejor num_iterations
+  #para usar en fganancia_logistic_lightgbm
+  GLOBAL_envios <<- as.integer(x$envios/PARAM$hyperparametertuning$xval_folds)   #asigno la variable global
+  
+  kfolds  <- PARAM$hyperparametertuning$xval_folds   # cantidad de folds para cross validation
+  
+  tb_ganancias  <- data.table(  num_iterations= integer(),
+                                ganancia= numeric() )
+  isemilla <- 0
+  
+  for( semilla  in  ksemillas )
+  {
+    isemilla  <- isemilla + 1
+    
+    param_basicos  <- list( objective= "binary",
+                            metric= "custom",
+                            first_metric_only= TRUE,
+                            boost_from_average= TRUE,
+                            feature_pre_filter= FALSE,
+                            verbosity= -100,
+                            max_depth=  -1,         # -1 significa no limitar,  por ahora lo dejo fijo
+                            min_gain_to_split= 0.0, #por ahora, lo dejo fijo
+                            lambda_l1= 0.0,         #por ahora, lo dejo fijo
+                            lambda_l2= 0.0,         #por ahora, lo dejo fijo
+                            max_bin= 31,            #por ahora, lo dejo fijo
+                            num_iterations= 9999,   #un numero muy grande, lo limita early_stopping_rounds
+                            force_row_wise= TRUE,   #para que los alumnos no se atemoricen con tantos warning
+                            seed= semilla
+    )
+    
+    
+    #el parametro discolo, que depende de otro
+    param_variable  <- list(  early_stopping_rounds= as.integer(50 + 5/x$learning_rate) )
+    
+    param_completo  <- c( param_basicos, param_variable, x )
+    
+    set.seed( PARAM$hyperparametertuning$semilla_azar )
+    modelocv  <- lgb.cv( data= dtrain,
+                         eval= fganancia_logistic_lightgbm,
+                         stratified= TRUE, #sobre el cross validation
+                         nfold= kfolds,    #folds del cross validation
+                         param= param_completo,
+                         verbose= -100
+    )
+    
+    #obtengo la ganancia
+    ganancia  <- unlist(modelocv$record_evals$valid$ganancia$eval)[ modelocv$best_iter ]
+    
+    ganancia_normalizada  <-  ganancia* kfolds     #normailizo la ganancia
+    
+    #acumulo las ganancias en la tabla
+    tb_ganancias  <- rbind( tb_ganancias,
+                            list( modelocv$best_iter, ganancia_normalizada ) )
+  }
+  
+  tb_ganancias[ , iteracion := GLOBAL_iteracion ]
+  fwrite( tb_ganancias,
+          file= "tb_ganancias.txt",
+          sep="\t",
+          append= TRUE )
+  
+  #grabo el PROMEDIO de la cantidad de iteraciones
+  param_completo$num_iterations  <- tb_ganancias[ , as.integer(mean( num_iterations)) ]
   param_completo["early_stopping_rounds"]  <- NULL     #elimino de la lista el componente  "early_stopping_rounds"
   
+  
   #Voy registrando la importancia de variables
-  if( ganancia_normalizada >  GLOBAL_gananciamax )
+  if( tb_ganancias[ , mean(ganancia)] >  GLOBAL_gananciamax )
   {
-    GLOBAL_gananciamax  <<- ganancia_normalizada
+    GLOBAL_gananciamax  <<- tb_ganancias[ , mean(ganancia)]
     modelo  <- lgb.train( data= dtrain,
                           param= param_completo,
                           verbose= -100
-                         )
-
+    )
+    
     tb_importancia  <- as.data.table( lgb.importance(modelo ) )
     archivo_importancia  <- paste0( "impo_", GLOBAL_iteracion,".txt")
     fwrite( tb_importancia,
             file= archivo_importancia,
             sep= "\t" )
   }
-
-
+  
+  
   #el lenguaje R permite asignarle ATRIBUTOS a cualquier variable
-  attr(ganancia_normalizada ,"extras" )  <- list("num_iterations"= modelocv$best_iter)  #esta es la forma de devolver un parametro extra
-
-  #logueo 
+  attr(ganancia_normalizada ,"extras" )  <- list("num_iterations"= tb_ganancias[ , as.integer(mean( num_iterations)) ] )  #esta es la forma de devolver un parametro extra
+  
+  #logueo
   xx  <- param_completo
-  xx$ganancia  <- ganancia_normalizada   #le agrego la ganancia
+  xx$ganancia  <- tb_ganancias[ , mean(ganancia)]   #le agrego la ganancia
   xx$iteracion <- GLOBAL_iteracion
   loguear( xx, arch= klog )
-
-  return( ganancia_normalizada )
+  
+  return( tb_ganancias[ , mean(ganancia)] )
 }
+
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 #Aqui empieza el programa
