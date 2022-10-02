@@ -74,11 +74,27 @@ for( campo in variables_rank )
   }
 }
 
+dtrain  <- dataset[ foto_mes==202103 ]  #defino donde voy a entrenar
+dapply  <- dataset[ foto_mes==202105 ]  #defino donde voy a aplicar el modelo
+
+
+
 for (campo in variables_rank) {
   
-  dataset[    , paste0("rank_", campo) := (frankv(dataset, cols = campo) - 1) / (length(dataset[, get(campo)]) - 1), by = dataset$foto_mes] 
-  dataset[, paste0(campo) := NULL] 
-} 
+  dtrain[    , paste0("rank_", campo) := (frankv(dtrain, cols = campo) - 1) / (length(dtrain[, get(campo)]) - 1)] # rankeo entre 0 y 1
+  dtrain[   , paste0(campo) := NULL] 
+}      
+
+
+for (campo in variables_rank) {
+  
+  dapply[    , paste0("rank_", campo) := (frankv(dapply, cols = campo) - 1) / (length(dapply[, get(campo)]) - 1)] # rankeo entre 0 y 1
+  dapply[    , paste0(campo) := NULL] 
+}      
+
+
+d3<-merge(dtrain,dapply, all=TRUE)
+
 
 dataset[ , campo1 := as.integer( ctrx_quarter <20 & rank_mcuentas_saldo_neg < 0.17933 & rank_mprestamos_personales <0.79794 ) ]
 dataset[ , campo2 := as.integer( ctrx_quarter <20 & rank_mcuentas_saldo_neg < 0.17933 & rank_mprestamos_personales >=0.79794 ) ]
