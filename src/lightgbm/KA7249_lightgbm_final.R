@@ -93,7 +93,7 @@ for (campo in variables_rank) {
 }      
 
 
-d3<-merge(dtrain,dapply, all=TRUE)
+dataset<-merge(dtrain,dapply, all=TRUE)
 
 
 dataset[ , campo1 := as.integer( ctrx_quarter <20 & rank_mcuentas_saldo_neg < 0.17933 & rank_mprestamos_personales <0.79794 ) ]
