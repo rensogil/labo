@@ -1,0 +1,102 @@
+#Arbol elemental con libreria  rpart
+#Debe tener instaladas las librerias  data.table  ,  rpart  y  rpart.plot
+
+#cargo las librerias que necesito
+require("data.table")
+require("rpart")
+require("rpart.plot")
+
+#Aqui se debe poner la carpeta de la materia de SU computadora local
+setwd("C:\\Users\\renso\\OneDrive\\Documentos\\DMEF\\")  #Establezco el Working Directory
+
+#cargo el dataset
+dataset  <- fread("./datasets/competencia2_2022.csv.gz")
+
+variables_rank <- c("mcuentas_saldo","cdescubierto_preacordado", "cprestamos_personales", 
+                    "mprestamos_personales", "mcuenta_corriente", "mpasivos_margen", "mcaja_ahorro", 
+                    "mactivos_margen", "mcomisiones_mantenimiento", "mcomisiones", "mpayroll", "cpayroll_trx", "Visa_Fvencimiento",
+                    "Master_Fvencimiento","Master_Finiciomora","Master_fultimo_cierre","Visa_fultimo_cierre","Visa_Finiciomora",
+                    "mttarjeta_master_debitos_automaticos", "mtarjeta_visa_consumo", "Visa_msaldopesos",
+                    "Visa_msaldototal", "Visa_mpagado", "Visa_mpagominimo", "Visa_mlimitecompra", "Visa_mfinanciacion_limite",
+                    "mttarjeta_visa_debitos_automaticos", "mrentabilidad_annual", "mrentabilidad", "mcomisiones_otras",
+                    "Master_mpagado","mtransferencias_recibidas", "matm_other", "matm", "mcheques_depositados", "ctransferencias_recibidas",
+                    "Master_mpagosdolares", "Visa_mpagospesos", "Visa_msaldodolares", "mtransferencias_emitidas",
+                    "Master_mconsumosdolares", "Master_msaldodolares", "mcaja_ahorro_dolares", "ccheques_depositados",
+                    "mpagomiscuentas", "mtarjeta_visa_descuentos", "mplazo_fijo_dolares","mcajeros_propios_descuentos", "Master_msaldototal",
+                    "mtarjeta_master_consumo", "mcuenta_debitos_automaticos", "cpagomiscuentas", "Master_msaldopesos", "Master_mconsumototal",
+                    "Master_mpagominimo", "Visa_mconsumosdolares", "Visa_mpagosdolares", "Visa_mconsumototal"
+)
+
+
+for( campo in variables_rank )
+{
+  if(  dataset[ get(campo) < 0, .N ]  > 0 ) {
+    dataset[   , paste0( campo, "_neg" ) := ifelse( get(campo)< 0, get(campo), 0 ) ]
+    dataset[   , paste0( campo, "_pos" ) := ifelse( get(campo)> 0, get(campo), 0 ) ]
+    dataset[   , paste0(campo) := NULL]
+    variables_rank<-c(variables_rank, paste0( campo, "_neg" ))
+    variables_rank<-c(variables_rank, paste0( campo, "_pos" ))
+    variables_rank<-variables_rank[-which(variables_rank==campo)]
+    
+  }
+}
+
+
+dtrain  <- dataset[ foto_mes==202103 ]  #defino donde voy a entrenar
+dapply  <- dataset[ foto_mes==202105 ]  #defino donde voy a aplicar el modelo
+
+
+
+for (campo in variables_rank) {
+  
+  dtrain[    , paste0("rank_", campo) := (frankv(dtrain, cols = campo) - 1) / (length(dtrain[, get(campo)]) - 1)] # rankeo entre 0 y 1
+  dtrain[   , paste0(campo) := NULL] 
+}      
+
+
+for (campo in variables_rank) {
+  
+  dapply[    , paste0("rank_", campo) := (frankv(dapply, cols = campo) - 1) / (length(dapply[, get(campo)]) - 1)] # rankeo entre 0 y 1
+  dapply[    , paste0(campo) := NULL] 
+}      
+
+
+d3<-merge(dtrain,dapply, all=TRUE)
+
+
+#genero el modelo,  aqui se construye el arbol
+modelo  <- rpart(formula=   "clase_ternaria ~ .",  #quiero predecir clase_ternaria a partir de el resto de las variables
+                 data=      dtrain,  #los datos donde voy a entrenar
+                 xval=      0,
+                 cp=       -0.54,   #esto significa no limitar la complejidad de los splits
+                 minsplit=  1073,     #minima cantidad de registros para que se haga el split
+                 minbucket= 278,     #tamaño minimo de una hoja
+                 maxdepth=  3 )    #profundidad maxima del arbol
+
+
+#grafico el arbol
+prp(modelo, extra=101, digits=5, branch=1, type=4, varlen=0, faclen=0)
+
+
+#aplico el modelo a los datos nuevos
+prediccion  <- predict( object= modelo,
+                        newdata= dapply,
+                        type = "prob")
+
+#prediccion es una matriz con TRES columnas, llamadas "BAJA+1", "BAJA+2"  y "CONTINUA"
+#cada columna es el vector de probabilidades 
+
+#agrego a dapply una columna nueva que es la probabilidad de BAJA+2
+dapply[ , prob_baja2 := prediccion[, "BAJA+2"] ]
+
+#solo le envio estimulo a los registros con probabilidad de BAJA+2 mayor  a  1/40
+dapply[ , Predicted := as.numeric( prob_baja2 > 1/40 ) ]
+
+#genero el archivo para Kaggle
+#primero creo la carpeta donde va el experimento
+dir.create( "./exp/" )
+dir.create( "./exp/KA2003" )
+
+fwrite( dapply[ , list(numero_de_cliente, Predicted) ], #solo los campos para Kaggle
+        file= "./exp/KA2003/K101_001.csv",
+        sep=  "," )
