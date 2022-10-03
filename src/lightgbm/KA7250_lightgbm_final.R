@@ -23,7 +23,7 @@ PARAM$input$dataset       <- "./datasets/competencia2_2022.csv.gz"
 PARAM$input$training      <- c( 202103 )
 PARAM$input$future        <- c( 202105 )
 
-# Utilizo el 9 valor de ganancia de HT7250 iteracion 42
+# Utilizo el 1 valor de ganancia de HT7250 iteracion 85
 PARAM$finalmodel$max_bin           <-     31
 PARAM$finalmodel$learning_rate     <-     0.0620608068108074   #0.0142501265
 PARAM$finalmodel$num_iterations    <-    191  #615
