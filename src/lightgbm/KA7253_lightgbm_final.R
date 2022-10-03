@@ -16,7 +16,7 @@ require("lightgbm")
 #defino los parametros de la corrida, en una lista, la variable global  PARAM
 #  muy pronto esto se leera desde un archivo formato .yaml
 PARAM <- list()
-PARAM$experimento  <- "KA7240"
+PARAM$experimento  <- "KA7253"
 
 PARAM$input$dataset       <- "./datasets/competencia2_2022.csv.gz"
 PARAM$input$training      <- c( 202103 )
@@ -45,7 +45,7 @@ dataset[ , campo3 := as.integer( ctrx_quarter <20 & mcuentas_saldo >= -1010.6 & 
 dataset[ , campo4 := as.integer( ctrx_quarter <20 & mcuentas_saldo >= -1010.6 & mpasivos_margen  >= 81.77 ) ]
 
 dataset[ , campo5 := as.integer( ctrx_quarter>=20 & ctrx_quarter<41  & mpasivos_margen<118.7  ) ]
-dataset[ , campo6 := as.integer( ctrx_quarter>=20 & ctrx_quarter<41  & mpasivos_margens>=118.7   ) ]
+dataset[ , campo6 := as.integer( ctrx_quarter>=20 & ctrx_quarter<41  & mpasivos_margen>=118.7   ) ]
 
 dataset[ , campo7 := as.integer( ctrx_quarter>=20 & ctrx_quarter>=41  & cpayroll_trx<1  ) ]
 dataset[ , campo8 := as.integer( ctrx_quarter>=20 & ctrx_quarter>=41  & cpayroll_trx>=1 ) ]
