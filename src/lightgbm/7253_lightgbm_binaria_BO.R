@@ -44,7 +44,7 @@ hs <- makeParamSet(
 #  muy pronto esto se leera desde un archivo formato .yaml
 PARAM  <- list()
 
-PARAM$experimento  <- "HT7252"
+PARAM$experimento  <- "HT7253"
 
 PARAM$input$dataset       <- "./datasets/competencia2_2022.csv.gz"
 PARAM$input$training      <- c( 202103 )
@@ -202,13 +202,13 @@ dataset  <- fread(PARAM$input$dataset, stringsAsFactors= TRUE)
 
 
 dataset[ , campo2 := as.integer( ctrx_quarter <20 & mcuentas_saldo < -1010.6 & mprestamos_personales < 9988.3 ) ]
-dataset[ , campo2 := as.integer( ctrx_quarter <20 & mcuentas_saldo < -1010.6 & mprestamos_personales >= 9988.3 ) ) ]
+dataset[ , campo2 := as.integer( ctrx_quarter <20 & mcuentas_saldo < -1010.6 & mprestamos_personales >= 9988.3 )  ]
 
 dataset[ , campo3 := as.integer( ctrx_quarter <20 & mcuentas_saldo >= -1010.6 & mpasivos_margen < 81.77 ) ]
 dataset[ , campo4 := as.integer( ctrx_quarter <20 & mcuentas_saldo >= -1010.6 & mpasivos_margen  >= 81.77 ) ]
 
-dataset[ , campo5 := as.integer( ctrx_quarter>=20 & ctrx_quarter<41  & pasivos_margen<118.7  ) ]
-dataset[ , campo6 := as.integer( ctrx_quarter>=20 & ctrx_quarter<41  & pasivos_margens>=118.7   ) ]
+dataset[ , campo5 := as.integer( ctrx_quarter>=20 & ctrx_quarter<41  & mpasivos_margen<118.7  ) ]
+dataset[ , campo6 := as.integer( ctrx_quarter>=20 & ctrx_quarter<41  & mpasivos_margens>=118.7   ) ]
 
 dataset[ , campo7 := as.integer( ctrx_quarter>=20 & ctrx_quarter>=41  & cpayroll_trx<1  ) ]
 dataset[ , campo8 := as.integer( ctrx_quarter>=20 & ctrx_quarter>=41  & cpayroll_trx>=1 ) ]
