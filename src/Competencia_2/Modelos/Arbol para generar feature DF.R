@@ -16,7 +16,7 @@ dtrain  <- dataset[ foto_mes==202103 ]  #defino donde voy a entrenar
 dapply  <- dataset[ foto_mes==202105 ]  #defino donde voy a aplicar el modelo
 
 #genero el modelo,  aqui se construye el arbol
-modelo  <- rpart(formula=   "clase_ternaria ~ .",  #quiero predecir clase_ternaria a partir de el resto de las variables
+modelo  <- rpart(formula=   "clase_ternaria ~ .-ctrx_quarter",  #quiero predecir clase_ternaria a partir de el resto de las variables
                  data=      dtrain,  #los datos donde voy a entrenar
                  xval=      0,
                  cp=       -0.54,   #esto significa no limitar la complejidad de los splits
