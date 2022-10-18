@@ -192,6 +192,7 @@ EstimarGanancia_lightgbm  <- function( x )
 setwd("~/buckets/b1/")   #Establezco el Working Directory
 
 #cargo el dataset donde voy a entrenar el modelo
+dataset  <- fread( PARAM$input$dataset )
 
 #combino MasterCard y Visa
 dataset[, mv_mfinanciacion_limite := rowSums(cbind(Master_mfinanciacion_limite, Visa_mfinanciacion_limite), na.rm = TRUE)]

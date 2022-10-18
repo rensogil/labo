@@ -34,7 +34,7 @@ PARAM$finalmodel$semilla           <- 388699
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 #Aqui empieza el programa
-setwd( "C:\\Users\\renso\\OneDrive\\Documentos\\DMEF\\" )
+setwd( "~/buckets/b1/" )
 
 #cargo el dataset donde voy a entrenar
 dataset  <- fread(PARAM$input$dataset, stringsAsFactors= TRUE)
