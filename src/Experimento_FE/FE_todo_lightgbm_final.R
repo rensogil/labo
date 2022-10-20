@@ -349,7 +349,7 @@ resultado_1 <- data.frame(
 
 Promedio_ganancias = resultado_1 %>%
   group_by(envios) %>%
-  summarise(Promedio_ganancia = mean(ganancia, sd=sd(ganancia)))
+  summarise(Promedio_ganancia = mean(ganancia), sd=sd(ganancia))
 Promedio_ganancias_ord =Promedio_ganancias%>%
   arrange(desc(Promedio_ganancia))
 Promedio_ganancias_ord
